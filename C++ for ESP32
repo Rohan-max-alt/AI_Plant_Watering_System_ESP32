@@ -1,0 +1,40 @@
+// Define Pins
+const int soilSensorPin = 36; // GPIO 36 (ADC0)
+const int relayPin = 23;      // GPIO 23 for Relay control
+
+// Threshold for dry soil (Adjust based on your sensor's calibration)
+// Capacitive sensors usually output higher voltage/values when dry and lower when wet, 
+// OR vice versa depending on module calibration. Let's assume raw analog 0-4095.
+const int dryThreshold = 2800; // If raw value exceeds this, soil is dry
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(relayPin, OUTPUT);
+  digitalWrite(relayPin, HIGH); // Ensure pump is OFF initially (depends on active LOW/HIGH relay)
+  delay(1000);
+}
+
+void loop() {
+  // Read analog value from capacitive soil moisture sensor
+  int soilValue = analogRead(soilSensorPin);
+  
+  Serial.print("Soil Moisture Raw Value: ");
+  Serial.println(soilValue);
+
+  // Check if soil needs water
+  if (soilValue > dryThreshold) {
+    Serial.println("Status: Soil is DRY! Turning on water pump...");
+    
+    digitalWrite(relayPin, LOW);  // Turn ON pump (for active LOW relays)
+    delay(3000);                  // Run pump for 3 seconds
+    
+    digitalWrite(relayPin, HIGH); // Turn OFF pump
+    Serial.println("Pump stopped. Waiting for next check...");
+    
+    delay(10000); // Wait 10 seconds before next reading
+  } else {
+    Serial.println("Status: Soil is wet enough. Doing nothing.");
+  }
+
+  delay(2000); // Read every 2 seconds
+}
